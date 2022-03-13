@@ -10,6 +10,7 @@ var Engine = Matter.Engine,
     Bodies = Matter.Bodies,
     Body = Matter.Body,
     Composites = Matter.Composites,
+    Vertices = Matter.Vertices,
     Events = Matter.Events;
 
 // provide concave decomposition support library
@@ -66,7 +67,10 @@ if (typeof fetch !== 'undefined') {
             collisionFilter: {
                 group: -1,
             },
-            isStatic: true
+            isStatic: true,
+            plugin: {
+                type: 'process',
+            }
         }, true));
     });
 } else {
@@ -94,17 +98,28 @@ var mouse = Mouse.create(render.canvas),
 
 Events.on(mouseConstraint, 'mouseup', function({mouse}) {
     console.log(mouse);
-    var string1 = string(mouse.mouseupPosition.x, mouse.mouseupPosition.y, -1);
-
-    console.log(string1);
 
 
-    string1.bodies[0].isStatic = true;
+    // wrapping using matter-wrap plugin
+    let allBodies = Composite.allBodies(world);
 
+    function isProcess(body) {
+        return body.plugin.type === 'process';
+    }
 
-    Composite.add(world, [
-        string1,
-    ]);
+    for (let i = 0; i < allBodies.length; i += 1) {
+        let body = allBodies[i];
+        if(Vertices.contains(body.vertices, mouse.mouseupPosition) && isProcess(body)) {
+            let string1 = string(mouse.mouseupPosition.x, mouse.mouseupPosition.y, -1);
+            string1.bodies[0].isStatic = true;
+            Composite.add(world, [
+                string1,
+            ]);
+            return;
+        }
+
+    }
+
 })
 
 Composite.add(world, mouseConstraint);
@@ -123,10 +138,12 @@ Render.run(render);
 
 
 function string(xx, yy, group) {
-    var particleOptions = Common.extend({ inertia: Infinity, friction: 0.00001, collisionFilter: { group: group }, render: { visible: true } } , {});
+    var particleOptions = Common.extend({ inertia: Infinity, friction: 0.00001, collisionFilter: { group: group }, render: { visible: false } } , {});
     var constraintOptions = Common.extend({ stiffness: 0.06, render: { type: 'line', anchors: false } }, constraintOptions);
 
-    var string = Composites.stack(xx, yy, 1, 12, 5, 5, function(x, y) {
+    var string = Composites.stack(xx, yy, 1, 12, 5, 5, function(x, y, column, row) {
+
+        particleOptions.render.visible = row === 0;
         return Bodies.circle(x, y, 8, particleOptions);
     });
 
