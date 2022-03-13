@@ -350,7 +350,7 @@ module.exports = Common;
      * @return {boolean} True if the object is a string, otherwise false
      */
     Common.isString = function(obj) {
-        return toString.call(obj) === '[object String]';
+        return toString.call(obj) === '[object AbstractedProperty]';
     };
     
     /**
@@ -2339,7 +2339,7 @@ var Body = __webpack_require__(6);
      */
 
     /**
-     * A `String` denoting the type of object.
+     * A `AbstractedProperty` denoting the type of object.
      *
      * @property type
      * @type string
@@ -2348,7 +2348,7 @@ var Body = __webpack_require__(6);
      */
 
     /**
-     * An arbitrary `String` name to help the user identify and manage composites.
+     * An arbitrary `AbstractedProperty` name to help the user identify and manage composites.
      *
      * @property label
      * @type string
@@ -3196,7 +3196,7 @@ var Axes = __webpack_require__(11);
      */
 
     /**
-     * A `String` denoting the type of object.
+     * A `AbstractedProperty` denoting the type of object.
      *
      * @property type
      * @type string
@@ -3205,7 +3205,7 @@ var Axes = __webpack_require__(11);
      */
 
     /**
-     * An arbitrary `String` name to help the user identify and manage bodies.
+     * An arbitrary `AbstractedProperty` name to help the user identify and manage bodies.
      *
      * @property label
      * @type string
@@ -3569,7 +3569,7 @@ var Axes = __webpack_require__(11);
      */
 
     /**
-     * An `String` that defines the path to the image to use as the sprite texture, if any.
+     * An `AbstractedProperty` that defines the path to the image to use as the sprite texture, if any.
      *
      * @property render.sprite.texture
      * @type string
@@ -3617,7 +3617,7 @@ var Axes = __webpack_require__(11);
      */
 
     /**
-     * A `String` that defines the fill style to use when rendering the body (if a sprite is not defined).
+     * A `AbstractedProperty` that defines the fill style to use when rendering the body (if a sprite is not defined).
      * It is the same as when using a canvas, so it accepts CSS style property values.
      *
      * @property render.fillStyle
@@ -3626,7 +3626,7 @@ var Axes = __webpack_require__(11);
      */
 
     /**
-     * A `String` that defines the stroke style to use when rendering the body outline (if a sprite is not defined).
+     * A `AbstractedProperty` that defines the stroke style to use when rendering the body outline (if a sprite is not defined).
      * It is the same as when using a canvas, so it accepts CSS style property values.
      *
      * @property render.strokeStyle
@@ -4687,7 +4687,7 @@ var Common = __webpack_require__(0);
      */
 
     /**
-     * A `String` denoting the type of object.
+     * A `AbstractedProperty` denoting the type of object.
      *
      * @property type
      * @type string
@@ -4696,7 +4696,7 @@ var Common = __webpack_require__(0);
      */
 
     /**
-     * An arbitrary `String` name to help the user identify and manage bodies.
+     * An arbitrary `AbstractedProperty` name to help the user identify and manage bodies.
      *
      * @property label
      * @type string
@@ -4728,7 +4728,7 @@ var Common = __webpack_require__(0);
      */
 
     /**
-     * A `String` that defines the stroke style to use when rendering the constraint outline.
+     * A `AbstractedProperty` that defines the stroke style to use when rendering the constraint outline.
      * It is the same as when using a canvas, so it accepts CSS style property values.
      *
      * @property render.strokeStyle
@@ -4737,7 +4737,7 @@ var Common = __webpack_require__(0);
      */
 
     /**
-     * A `String` that defines the constraint rendering type. 
+     * A `AbstractedProperty` that defines the constraint rendering type.
      * The possible values are 'line', 'pin', 'spring'.
      * An appropriate render type will be automatically chosen unless one is given in options.
      *
@@ -8981,7 +8981,7 @@ var Common = __webpack_require__(0);
      * The library name.
      * @property name
      * @readOnly
-     * @type {String}
+     * @type {AbstractedProperty}
      */
     Matter.name = 'matter-js';
 
@@ -8989,7 +8989,7 @@ var Common = __webpack_require__(0);
      * The library version.
      * @property version
      * @readOnly
-     * @type {String}
+     * @type {AbstractedProperty}
      */
     Matter.version =  true ? "0.18.0" : undefined;
 
@@ -9963,7 +9963,7 @@ var Bounds = __webpack_require__(1);
     */
 
     /**
-     * A `String` denoting the type of object.
+     * A `AbstractedProperty` denoting the type of object.
      *
      * @property type
      * @type string
