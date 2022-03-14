@@ -46,11 +46,9 @@
         addToWorld() {
 
             this.draw();
-            this.pin();
 
             Composite.add(this.world, [
-                this._matterElement,
-                this._pinConstraint
+                this._matterElement
             ]);
         }
 
@@ -66,24 +64,11 @@
                 },
                 plugin: {
                     type: 'process',
-                }
+                },
+                isStatic: true
             }, true);
         }
 
-        pin() {
-            this._pinConstraint = Constraint.create({
-                pointA: {
-                    x: 0,
-                    y: 0
-                },
-                pointB: {
-                    x: this._matterElement.position.x,
-                    y: this._matterElement.position.y,
-                },
-                bodyA: this._matterElement
-            })
-
-        }
     }
     if(typeof window.GS === 'undefined') {
         window.GS = {};

@@ -1,10 +1,22 @@
 (function() {
+    let Composite = Matter.Composite,
+        Bodies = Matter.Bodies,
+        Engine = Matter.Engine,
+        Render = Matter.Render,
+        Common = Matter.Common,
+        MouseConstraint = Matter.MouseConstraint,
+        Mouse = Matter.Mouse,
+        Events = Matter.Events,
+        Vertices = Matter.Vertices;
+
     class Root extends GS.SD.BaseElement {
         mouseConstraint;
         mouse;
         world;
         engine;
         render;
+        draggedBodyPosition;
+        draggedBodyRef;
 
         constructor() {
             super();
@@ -24,9 +36,7 @@
             this.attach(cp);
             cp.mount();
 
-            const Engine = Matter.Engine,
-                Render = Matter.Render,
-                Common = Matter.Common;
+
 
             // provide concave decomposition support library
             Common.setDecomp(decomp);
@@ -75,9 +85,7 @@
         }
 
         setupMouse() {
-            let MouseConstraint = Matter.MouseConstraint;
-            let Composite = Matter.Composite,
-                Mouse = Matter.Mouse;
+
             // add mouse control
             this.mouse = Mouse.create(this.render.canvas);
 
@@ -98,8 +106,7 @@
         }
 
         addWalls() {
-            let Composite = Matter.Composite,
-                Bodies = Matter.Bodies;
+
             Composite.add(this.world, [
                 Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
                 Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
@@ -108,17 +115,21 @@
             ]);
         }
 
+
+        removeFromWorld(object) {
+            Composite.remove(this.world, object);
+        }
+        setDraggedBodyRef(body) {
+            this.draggedBodyRef = body;
+        }
+
         setEvents() {
-            let Events = Matter.Events,
-                Vertices = Matter.Vertices,
-                Composite = Matter.Composite;
+
             let _ = this;
 
-            function isProcess(body) {
-                return body.plugin.type === 'process';
-            }
 
-            /*Events.on(this.mouseConstraint, 'mouseup', function({mouse}) {
+
+            Events.on(this.mouseConstraint, 'mousedown', function({mouse}) {
 
                 // wrapping using matter-wrap plugin
                 let allBodies = Composite.allBodies(_.world);
@@ -130,74 +141,39 @@
                 for (let i = 0; i < allBodies.length; i += 1) {
                     let body = allBodies[i];
                     if(Vertices.contains(body.vertices, mouse.mouseupPosition) && isProcess(body)) {
-                        let ap1 = new GS.SD.AbstractedProperty(mouse.mouseupPosition.x, mouse.mouseupPosition.y, -1);
-                        ap1.draw();
-
-                        Composite.add(_.world, [
-                            ap1.matterElement(),
-                        ]);
+                        _.setDraggedBodyRef(body);
+                        _.draggedBodyPosition = (function(){
+                            let { x,y } = _.draggedBodyRef.position;
+                            return { x,y };
+                        }());
 
                         return;
                     }
 
                 }
 
-            })*/
-            let mouse = this.mouse;
+            })
 
-            let targetConstraint = null;
-            Events.on(this.mouseConstraint, 'startdrag', function() {
-                console.log('startdrag');
-                let allBodies = Composite.allBodies(_.world);
-                let allConstraints = Composite.allConstraints(_.world);
+            Events.on(this.mouseConstraint, 'mousemove', function({mouse}) {
+                let dx = mouse.mousedownPosition.x - mouse.position.x;
+                let dy = mouse.mousedownPosition.y - mouse.position.y;
+                if(_.draggedBodyRef) {
+                    let newPosition = {
+                        x: _.draggedBodyPosition.x - dx,
+                        y: _.draggedBodyPosition.y - dy,
+                    };
 
-                console.log(allConstraints);
-
-
-                for (let i = 0; i < allConstraints.length; i += 1) {
-                    let body = allConstraints[i].bodyA;
-                    if(!body) {
-                        continue;
-                    }
-                    if(Vertices.contains(body.vertices, mouse.mouseupPosition) && isProcess(body)) {
-                        console.log('selected', body);
-                        console.log(body);
-                        targetConstraint = allConstraints[i];
-
-                        Composite.remove(_.world, targetConstraint);
-                        return;
-                    }
+                    Matter.Body.setPosition(_.draggedBodyRef, newPosition);
 
                 }
-            })
-
-            Events.on(this.mouseConstraint, 'mousemove', function() {
 
             })
 
-            Events.on(this.mouseConstraint, 'enddrag', function(mouseConstraint) {
-                console.log('enddrag', targetConstraint);
-                if(targetConstraint) {
-
-                    let constraint = Matter.Constraint.create({
-                        pointA: {
-                            x: 0,
-                            y: 0
-                        },
-                        pointB: {
-                            x: mouseConstraint.body.position.x,
-                            y: mouseConstraint.body.position.y
-                        },
-                        bodyA: mouseConstraint.body
-                    })
-                    Composite.add(_.world, [
-                        constraint
-                    ]);
-
-                }
-                targetConstraint = null;
-
+            Events.on(this.mouseConstraint, 'mouseup', function({mouse}) {
+                _.draggedBodyRef = null;
+                _.draggedBodyPosition = null;
             })
+
 
 
         }
