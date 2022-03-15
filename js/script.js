@@ -17,7 +17,7 @@ class SD {
     render;
     abstractButton;
     mode;
-    tempBody;
+    temp;
     prevTranslation;
 
     constructor(){
@@ -66,7 +66,7 @@ class SD {
                 console.log(_.mouse);
                 _.temp = new GS.SD.AbstractedProperty(_.mouse.position.x, _.mouse.position.y, -1);
                 _.temp.draw();
-                _.prevMousePosition = _.mouse.position;
+                _.prevMousePosition = null;
                 Composite.add(_.world, _.temp.matterElement());
             })
         }
@@ -110,8 +110,8 @@ class SD {
                     let body = allBodies[i];
 
                     if(Vertices.contains(body.vertices, mouse.mousedownPosition) && isProcess(body)) {
-                        _.tempBody = body;
-                        Body.setStatic(_.tempBody, false);
+                        _.temp = body;
+                        Body.setStatic(_.temp, false);
                         return;
                     }
 
@@ -135,7 +135,19 @@ class SD {
 
             if(_.mode === 'ABSTRACT_PROPERTY') {
 
-
+                if(!_.prevMousePosition) {
+                    let tran = {
+                        x: (_.temp.matterElement().bodies[0].position.x - _.mouse.position.x) * -1,
+                        y: (_.temp.matterElement().bodies[0].position.y - _.mouse.position.y) * -1,
+                    };
+                    console.log(tran);
+                    Composite.translate(_.temp.matterElement(), tran);
+                    _.prevMousePosition = {
+                        x: _.mouse.position.x,
+                        y: _.mouse.position.y,
+                    };
+                    return;
+                }
                 let translation = {
                     x:  mouse.position.x - _.prevMousePosition.x,
                     y:  mouse.position.y - _.prevMousePosition.y,
@@ -157,9 +169,9 @@ class SD {
 
 
         Events.on(this.mouseConstraint, 'mouseup', function({ mouse }) {
-            if(_.tempBody) {
-                Body.setStatic(_.tempBody, true);
-                _.tempBody = null;
+            if(_.temp) {
+                Body.setStatic(_.temp, true);
+                _.temp = null;
             }
 
         })
@@ -167,17 +179,9 @@ class SD {
 
     draw() {
         new GS.SD.Process(this.world);
-        this.drawWalls()
+
     }
 
-    drawWalls() {
-        Composite.add(this.world, [
-            Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
-            Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
-        ]);
-    }
 }
 
 new SD();
