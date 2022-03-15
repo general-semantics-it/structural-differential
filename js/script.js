@@ -15,15 +15,18 @@ class SD {
     world;
     engine;
     render;
-    draggedBodyRef;
+    abstractButton;
+    mode;
+    tempBody;
+    prevTranslation;
 
     constructor(){
-        let _ = this;
         Common.setDecomp(decomp);
-        _.init();
+        this.init();
     }
 
     init() {
+        this.mode = 'MOVE';
         this.engine = Engine.create();
         this.world = this.engine.world;
 
@@ -53,6 +56,21 @@ class SD {
 
         Render.run(this.render);
 
+        this.abstractButton = document.querySelector('.js-abstract-property');
+
+        let _ = this;
+
+        if(this.abstractButton) {
+            this.abstractButton.addEventListener('click', function() {
+                _.mode = 'ABSTRACT_PROPERTY';
+                console.log(_.mouse);
+                _.temp = new GS.SD.AbstractedProperty(_.mouse.position.x, _.mouse.position.y, -1);
+                _.temp.draw();
+                _.prevMousePosition = _.mouse.position;
+                Composite.add(_.world, _.temp.matterElement());
+            })
+        }
+
 
     }
 
@@ -80,32 +98,68 @@ class SD {
         let _ = this;
         Events.on(this.mouseConstraint, 'mousedown', function({mouse}) {
 
-            // wrapping using matter-wrap plugin
-            let allBodies = Composite.allBodies(_.world);
+            if(_.mode === 'MOVE') {
+                // wrapping using matter-wrap plugin
+                let allBodies = Composite.allBodies(_.world);
 
-            function isProcess(body) {
-                return body.plugin.type === 'process';
-            }
-
-            for (let i = 0; i < allBodies.length; i += 1) {
-                let body = allBodies[i];
-                if(Vertices.contains(body.vertices, mouse.mouseupPosition) && isProcess(body)) {
-                    _.draggedBodyRef = body;
-                    Body.setStatic(_.draggedBodyRef, false);
-                    return;
+                function isProcess(body) {
+                    return body.plugin.type === 'process';
                 }
 
+                for (let i = 0; i < allBodies.length; i += 1) {
+                    let body = allBodies[i];
+
+                    if(Vertices.contains(body.vertices, mouse.mousedownPosition) && isProcess(body)) {
+                        _.tempBody = body;
+                        Body.setStatic(_.tempBody, false);
+                        return;
+                    }
+
+                }
+            } if (_.mode === 'ABSTRACT_PROPERTY') {
+                _.mode = 'MOVE';
+                _.temp = null;
             }
+
 
         })
 
+        _.prevTranslation = {
+            x: 0,
+            y: 0
+        }
 
 
-        Events.on(this.mouseConstraint, 'mouseup', function({mouse}) {
-            if(_.draggedBodyRef) {
-                Body.setStatic(_.draggedBodyRef, true);
-                _.draggedBodyRef = null;
-                _.draggedBodyPosition = null;
+
+        Events.on(this.mouseConstraint, 'mousemove', function({ mouse }) {
+
+            if(_.mode === 'ABSTRACT_PROPERTY') {
+
+
+                let translation = {
+                    x:  mouse.position.x - _.prevMousePosition.x,
+                    y:  mouse.position.y - _.prevMousePosition.y,
+                }
+
+
+                Composite.translate(_.temp.matterElement(), translation);
+
+
+                _.prevMousePosition = {
+                    x: mouse.position.x,
+                    y: mouse.position.y,
+
+                };
+
+
+            }
+        })
+
+
+        Events.on(this.mouseConstraint, 'mouseup', function({ mouse }) {
+            if(_.tempBody) {
+                Body.setStatic(_.tempBody, true);
+                _.tempBody = null;
             }
 
         })
