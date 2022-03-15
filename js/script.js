@@ -6,7 +6,8 @@ let Composite = Matter.Composite,
     MouseConstraint = Matter.MouseConstraint,
     Mouse = Matter.Mouse,
     Events = Matter.Events,
-    Vertices = Matter.Vertices;
+    Vertices = Matter.Vertices,
+    Body = Matter.Body;
 
 class SD {
     mouseConstraint;
@@ -14,7 +15,6 @@ class SD {
     world;
     engine;
     render;
-    draggedBodyPosition;
     draggedBodyRef;
 
     constructor(){
@@ -91,11 +91,7 @@ class SD {
                 let body = allBodies[i];
                 if(Vertices.contains(body.vertices, mouse.mouseupPosition) && isProcess(body)) {
                     _.draggedBodyRef = body;
-                    _.draggedBodyPosition = (function(){
-                        let { x,y } = _.draggedBodyRef.position;
-                        return { x,y };
-                    }());
-
+                    Body.setStatic(_.draggedBodyRef, false);
                     return;
                 }
 
@@ -103,24 +99,15 @@ class SD {
 
         })
 
-        Events.on(this.mouseConstraint, 'mousemove', function({mouse}) {
-            let dx = mouse.mousedownPosition.x - mouse.position.x;
-            let dy = mouse.mousedownPosition.y - mouse.position.y;
-            if(_.draggedBodyRef) {
-                let newPosition = {
-                    x: _.draggedBodyPosition.x - dx,
-                    y: _.draggedBodyPosition.y - dy,
-                };
 
-                Matter.Body.setPosition(_.draggedBodyRef, newPosition);
-
-            }
-
-        })
 
         Events.on(this.mouseConstraint, 'mouseup', function({mouse}) {
-            _.draggedBodyRef = null;
-            _.draggedBodyPosition = null;
+            if(_.draggedBodyRef) {
+                Body.setStatic(_.draggedBodyRef, true);
+                _.draggedBodyRef = null;
+                _.draggedBodyPosition = null;
+            }
+
         })
     }
 
