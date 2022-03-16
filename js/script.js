@@ -4,6 +4,7 @@ let Composite = Matter.Composite,
     Render = Matter.Render,
     Common = Matter.Common,
     MouseConstraint = Matter.MouseConstraint,
+    Constraint = Matter.Constraint,
     Mouse = Matter.Mouse,
     Events = Matter.Events,
     Vertices = Matter.Vertices,
@@ -94,30 +95,66 @@ class SD {
         this.render.mouse = this.mouse;
     }
 
+    isProcess(body) {
+        return body.plugin.type === 'process';
+    }
+
+    getBodyHovered(point) {
+        let allBodies = Composite.allBodies(this.world);
+
+        for (let i = 0; i < allBodies.length; i += 1) {
+            let body = allBodies[i];
+
+            if(Vertices.contains(body.vertices, point)) {
+                return body;
+            }
+
+        }
+    }
+
+    getHoveredProcess(point) {
+        let body = this.getBodyHovered(point);
+        if(body && this.isProcess(body)) {
+            return body;
+        }
+    }
+
     setupEvents() {
         let _ = this;
         Events.on(this.mouseConstraint, 'mousedown', function({mouse}) {
 
             if(_.mode === 'MOVE') {
-                // wrapping using matter-wrap plugin
-                let allBodies = Composite.allBodies(_.world);
+                let body = _.getHoveredProcess(mouse.mousedownPosition);
+                console.log(body);
 
-                function isProcess(body) {
-                    return body.plugin.type === 'process';
-                }
-
-                for (let i = 0; i < allBodies.length; i += 1) {
-                    let body = allBodies[i];
-
-                    if(Vertices.contains(body.vertices, mouse.mousedownPosition) && isProcess(body)) {
-                        _.temp = body;
-                        Body.setStatic(_.temp, false);
-                        return;
-                    }
-
+                if(body) {
+                    _.temp = body;
+                    Body.setStatic(_.temp, false);
                 }
             } if (_.mode === 'ABSTRACT_PROPERTY') {
                 _.mode = 'MOVE';
+                let body = _.getHoveredProcess(mouse.mousedownPosition);
+
+
+                if(body) {
+                    let constraint = Constraint.create({
+                        bodyB: body,
+                        bodyA: _.temp.matterElement().bodies[0],
+                        pointA: {
+                            x: 0,
+                            y: 0
+                        },
+                        pointB: {
+                            x: _.mouse.position.x - body.position.x,
+                            y: _.mouse.position.y - body.position.y
+                        }
+                    })
+
+                    Body.setStatic(_.temp.matterElement().bodies[0], false);
+                    Composite.add(_.world, constraint);
+                }
+
+
                 _.temp = null;
             }
 
