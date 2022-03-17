@@ -3,22 +3,22 @@
         Bodies = Matter.Bodies,
         Constraint = Matter.Constraint,
         Common = Matter.Common,
-        Svg = Matter.Svg;
+        Svg = Matter.Svg,
+        Body = Matter.Body;
 
-    class Process {
+    class Process extends GS.SD.BaseMatterElement {
+
+        static buttonText = "Добавить процесс";
+
         vertices = [];
         color = Common.choose(['#f19648', '#f5d259', '#f55a3c', '#063e7b', '#ececd1']);
-        _pinConstraint;
 
-        constructor(world) {
-            this.world = world;
-            this.init();
+
+        constructor(world, elements, mouse) {
+            super('PROCESS', world, elements, mouse);
+
         }
 
-        async init() {
-            await this.setVertices();
-            this.addToWorld();
-        }
 
         select(root, selector) {
             return Array.prototype.slice.call(root.querySelectorAll(selector));
@@ -43,17 +43,22 @@
 
         }
 
-        addToWorld() {
-
-            this.draw();
-
-            Composite.add(this.world, [
-                this._matterElement
-            ]);
+        correctPositionResolver() {
+            Body.translate(this.matterElement, {
+                x: (this.matterElement.position.x - this.mouse.position.x) * -1,
+                y: (this.matterElement.position.y - this.mouse.position.y) * -1,
+            });
         }
 
-        draw() {
-            this._matterElement = Bodies.fromVertices(400, 200, this.vertices, {
+        matterTypeResolver() {
+            return Body;
+        }
+
+
+        async draw(point) {
+            await this.setVertices();
+
+            this.matterElement = Bodies.fromVertices(point.x, point.y, this.vertices, {
                 render: {
                     fillStyle: this.color,
                     strokeStyle: this.color,
@@ -63,11 +68,30 @@
                     group: -1,
                 },
                 plugin: {
-                    type: 'process',
+                    type: 'PROCESS',
                 },
                 isStatic: true
             }, true);
         }
+
+        place() {
+
+        }
+
+        beforeMove() {
+            Body.setStatic(this.matterElement, false);
+        }
+
+        afterMove() {
+            Body.setStatic(this.matterElement, true);
+        }
+
+
+        containsPointResolver(point) {
+            return Vertices.contains(this.matterElement.vertices, point);
+        }
+
+
 
     }
     if(typeof window.GS === 'undefined') {

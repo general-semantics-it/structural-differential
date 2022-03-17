@@ -11,23 +11,25 @@ let Composite = Matter.Composite,
     Body = Matter.Body;
 
 class SD {
-    mouseConstraint;
-    mouse;
-    world;
-    engine;
-    render;
-    abstractButton;
-    mode;
-    temp;
-    prevTranslation;
 
     constructor(){
         Common.setDecomp(decomp);
+        this.mode = 'IDLE';
+        this.render = null;
+        this.engine = null;
+        this.world = null;
+        this.mouse = null;
+        this.mouseConstraint = null;
+        this.elements = [];
+        this.elementsClasses = [
+            GS.SD.Process,
+            GS.SD.AbstractedProperty
+        ]
+
         this.init();
     }
 
     init() {
-        this.mode = 'MOVE';
         this.engine = Engine.create();
         this.world = this.engine.world;
 
@@ -45,34 +47,44 @@ class SD {
         Runner.run(runner, this.engine);
 
         this.setupMouse();
-        this.setupEvents();
+        this.setupMouseEvents();
+        this.setupControls();
 
-        // fit the render viewport to the scene
+        Composite.add(this.world, [
+            Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
+            Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
+            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
+            Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+        ]);
+
         Render.lookAt(this.render, {
             min: { x: 0, y: 0 },
             max: { x: 800, y: 600 }
         });
 
-        this.draw();
-
         Render.run(this.render);
 
-        this.abstractButton = document.querySelector('.js-abstract-property');
 
+    }
+
+    setupControls() {
         let _ = this;
 
-        if(this.abstractButton) {
-            this.abstractButton.addEventListener('click', function() {
-                _.mode = 'ABSTRACT_PROPERTY';
-                console.log(_.mouse);
-                _.temp = new GS.SD.AbstractedProperty(_.mouse.position.x, _.mouse.position.y, -1);
-                _.temp.draw();
-                _.prevMousePosition = null;
-                Composite.add(_.world, _.temp.matterElement());
-            })
-        }
+        _.elementsClasses.forEach(function(cls) {
+            let button = document.createElement('BUTTON');
+            let controls = document.querySelector('.controls');
 
+            button.textContent = cls.buttonText;
+            controls.appendChild(button);
 
+            button.addEventListener('click', async () => {
+                _.mode = 'PLACING';
+                _.temp = new cls(_.world, _.elements, _.mouse);
+                await _.temp.draw(_.mouse.position);
+                _.elements.push(_.temp);
+                Composite.add(_.world, _.temp.matterElement);
+            });
+        });
     }
 
     setupMouse() {
@@ -95,129 +107,42 @@ class SD {
         this.render.mouse = this.mouse;
     }
 
-    isProcess(body) {
-        return body.plugin.type === 'process';
-    }
-
-    getBodyHovered(point) {
-        let allBodies = Composite.allBodies(this.world);
-
-        for (let i = 0; i < allBodies.length; i += 1) {
-            let body = allBodies[i];
-
-            if(Vertices.contains(body.vertices, point)) {
-                return body;
-            }
-
-        }
-    }
-
-    getHoveredProcess(point) {
-        let body = this.getBodyHovered(point);
-        if(body && this.isProcess(body)) {
-            return body;
-        }
-    }
-
-    setupEvents() {
+    setupMouseEvents() {
         let _ = this;
         Events.on(this.mouseConstraint, 'mousedown', function({mouse}) {
-
-            if(_.mode === 'MOVE') {
-                let body = _.getHoveredProcess(mouse.mousedownPosition);
-                console.log(body);
-
-                if(body) {
-                    _.temp = body;
-                    Body.setStatic(_.temp, false);
-                }
-            } if (_.mode === 'ABSTRACT_PROPERTY') {
-                _.mode = 'MOVE';
-                let body = _.getHoveredProcess(mouse.mousedownPosition);
-
-
-                if(body) {
-                    let constraint = Constraint.create({
-                        bodyB: body,
-                        bodyA: _.temp.matterElement().bodies[0],
-                        pointA: {
-                            x: 0,
-                            y: 0
-                        },
-                        pointB: {
-                            x: _.mouse.position.x - body.position.x,
-                            y: _.mouse.position.y - body.position.y
-                        }
-                    })
-
-                    Body.setStatic(_.temp.matterElement().bodies[0], false);
-                    Composite.add(_.world, constraint);
-                }
-
-
-                _.temp = null;
+            if(_.mode === 'IDLE') {
+                _.elements.forEach(function(el) {
+                    if(el.containsPointResolver(mouse.mousedownPosition)) {
+                        _.temp = el;
+                        _.temp.beforeMove();
+                        _.mode = 'MOVING';
+                    }
+                })
             }
-
-
+            if(_.mode === 'PLACING') {
+                if(_.temp) {
+                    _.temp.place();
+                    _.temp = null;
+                    _.mode = 'IDLE';
+                }
+            }
         })
-
-        _.prevTranslation = {
-            x: 0,
-            y: 0
-        }
-
-
 
         Events.on(this.mouseConstraint, 'mousemove', function({ mouse }) {
-
-            if(_.mode === 'ABSTRACT_PROPERTY') {
-
-                if(!_.prevMousePosition) {
-                    let tran = {
-                        x: (_.temp.matterElement().bodies[0].position.x - _.mouse.position.x) * -1,
-                        y: (_.temp.matterElement().bodies[0].position.y - _.mouse.position.y) * -1,
-                    };
-                    console.log(tran);
-                    Composite.translate(_.temp.matterElement(), tran);
-                    _.prevMousePosition = {
-                        x: _.mouse.position.x,
-                        y: _.mouse.position.y,
-                    };
-                    return;
-                }
-                let translation = {
-                    x:  mouse.position.x - _.prevMousePosition.x,
-                    y:  mouse.position.y - _.prevMousePosition.y,
-                }
-
-
-                Composite.translate(_.temp.matterElement(), translation);
-
-
-                _.prevMousePosition = {
-                    x: mouse.position.x,
-                    y: mouse.position.y,
-
-                };
-
-
+            if(_.mode === 'PLACING') {
+                _.temp.move(mouse);
             }
         })
-
 
         Events.on(this.mouseConstraint, 'mouseup', function({ mouse }) {
-            if(_.temp) {
-                Body.setStatic(_.temp, true);
+            if(_.mode === 'MOVING') {
+                _.temp.afterMove();
                 _.temp = null;
+                _.mode = 'IDLE';
             }
-
         })
     }
 
-    draw() {
-        new GS.SD.Process(this.world);
-
-    }
 
 }
 

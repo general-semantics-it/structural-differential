@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../general-semantics/.idea/general-semantics.iml" filepath="$PROJECT_DIR$/../general-semantics/.idea/general-semantics.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/structural-differential.iml" filepath="$PROJECT_DIR$/.idea/structural-differential.iml" />
     </modules>
   </component>
