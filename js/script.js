@@ -164,7 +164,7 @@ class SD {
 
 }
 
-new SD();
+window.sd = new SD();
 
 
 
