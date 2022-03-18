@@ -11,6 +11,13 @@
             this.matterElement = null;
             this.prevMousePosition = null;
             this.elements = elements;
+            this.pinPointsAmount = 1;
+            this.pinPointIndex = 0;
+            this.moveable = false;
+            this.pinConstraints = [];
+            this.pinConstraint = null;
+            this.unpinable = false;
+            this.externalPinned = false;
         }
 
         correctPosition(mouse) {
@@ -25,31 +32,74 @@
             }
         }
 
-        correctPositionResolver() {
-            throw Error('You need to declare [correctPositionResolver] function');
+        matterBodyResolver() {
+            return this.matterElement;
         }
 
         matterTypeResolver() {
-            throw Error('You need to declare [matterTypeResolver] function');
+            return Body;
         }
 
-        containsPointResolver() {
-            throw Error('You need to declare [containsPoint] function');
+        pin() {
+
+            this.pinConstraint = Constraint.create({
+                bodyA: this.matterBodyResolver(),
+                pointB: {
+                    x: this.matterBodyResolver().position.x,
+                    y: this.matterBodyResolver().position.y
+                }
+            })
+
+            Body.setStatic(this.matterBodyResolver(), false);
+            Composite.add(this.world, this.pinConstraint);
+
+        }
+
+        unpin() {
+            Composite.remove(this.world, this.pinConstraints[this.pinPointIndex]);
         }
 
         beforeMove() {
-            throw Error('You need to declare [beforeMove] function');
+            this.unPlace();
         }
 
         afterMove() {
-            throw Error('You need to declare [afterMove] function');
+            this.place();
         }
 
+        afterPin() {}
+
+        afterUnpin() {}
+
+        place() {
+            if(!this.externalPinned) {
+                this.pin();
+                this.pinPointIndex++;
+                this.pinConstraints.push(this.pinConstraint);
+                this.afterPin();
+            }
+
+        }
+
+        unPlace() {
+            if(!this.externalPinned) {
+                this.pinPointIndex--;
+                this.unpin();
+                Body.setStatic(this.matterBodyResolver(), false);
+
+                this.pinConstraints.pop();
+                this.afterUnpin();
+            }
+        }
+
+        isLastPin() {
+            return this.pinPointIndex >= this.pinPointsAmount;
+        }
 
         move(mouse) {
             this.correctPosition(mouse)
 
-            this.matterTypeResolver().translate(this.matterElement, {
+            this.matterTypeResolver().translate(this.matterBodyResolver(), {
                 x:  mouse.position.x - this.prevMousePosition.x,
                 y:  mouse.position.y - this.prevMousePosition.y,
             });
@@ -59,6 +109,17 @@
                 y: mouse.position.y,
 
             };
+        }
+
+        correctPositionResolver() {
+            this.matterTypeResolver().translate(this.matterBodyResolver(), {
+                x: (this.matterBodyResolver().position.x - this.mouse.position.x) * -1,
+                y: (this.matterBodyResolver().position.y - this.mouse.position.y) * -1,
+            });
+        }
+
+        containsPointResolver(point) {
+            return Vertices.contains(this.matterBodyResolver().vertices, point);
         }
     }
 

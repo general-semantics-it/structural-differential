@@ -23,7 +23,9 @@ class SD {
         this.elements = [];
         this.elementsClasses = [
             GS.SD.Process,
-            GS.SD.AbstractedProperty
+            GS.SD.AbstractedProperty,
+            GS.SD.Object,
+            GS.SD.Conclusion,
         ]
 
         this.init();
@@ -37,8 +39,8 @@ class SD {
             element: document.querySelector("#root"),
             engine: this.engine,
             options: {
-                width: 800,
-                height: 600
+                width: 1000,
+                height: 1000
             }
         });
 
@@ -51,10 +53,10 @@ class SD {
         this.setupControls();
 
         Composite.add(this.world, [
-            Bodies.rectangle(400, 0, 800, 50, { isStatic: true }),
-            Bodies.rectangle(400, 600, 800, 50, { isStatic: true }),
-            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(0, 300, 50, 600, { isStatic: true })
+            Bodies.rectangle(500, -100, 1000, 50, { isStatic: true }),
+            Bodies.rectangle(500, 700, 1000, 50, { isStatic: true }),
+            //Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
+            Bodies.rectangle(0, 300, 50, 1000, { isStatic: true })
         ]);
 
         Render.lookAt(this.render, {
@@ -82,6 +84,7 @@ class SD {
                 _.temp = new cls(_.world, _.elements, _.mouse);
                 await _.temp.draw(_.mouse.position);
                 _.elements.push(_.temp);
+                console.log(_.temp.matterElement);
                 Composite.add(_.world, _.temp.matterElement);
             });
         });
@@ -111,19 +114,34 @@ class SD {
         let _ = this;
         Events.on(this.mouseConstraint, 'mousedown', function({mouse}) {
             if(_.mode === 'IDLE') {
-                _.elements.forEach(function(el) {
-                    if(el.containsPointResolver(mouse.mousedownPosition)) {
+                for(let i = 0; i < _.elements.length; i++) {
+                    let el = _.elements[i];
+
+                    if(el.containsPointResolver(mouse.mousedownPosition) && el.moveable) {
                         _.temp = el;
                         _.temp.beforeMove();
                         _.mode = 'MOVING';
+                        return;
                     }
-                })
+                }
             }
+
             if(_.mode === 'PLACING') {
                 if(_.temp) {
-                    _.temp.place();
-                    _.temp = null;
-                    _.mode = 'IDLE';
+                    for(let i = 0; i < _.elements.length; i++) {
+                        let el = _.elements[i];
+
+                        if(el.containsPointResolver(mouse.mousedownPosition) && el.moveable) {
+                            _.temp.place();
+
+                            if(_.temp.isLastPin()) {
+                                _.temp = null;
+                                _.mode = 'IDLE';
+                            }
+                        }
+                    }
+
+
                 }
             }
         })
