@@ -7,14 +7,15 @@
 
         static buttonText = "Добавить объект";
 
-        constructor(world, elements, mouse) {
-            super('OBJECT', world, elements, mouse);
+        constructor(elements, render) {
+            super('OBJECT', elements, render);
+            this.label = 'object';
             this.moveable = true;
-            this.unpinable = true;
+            //this.unpinable = true;
 
         }
 
-        draw(point) {
+        async create(point) {
 
             this.matterElement = Bodies.circle(point.x, point.y, 50, {
                 isStatic: true,

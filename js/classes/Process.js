@@ -7,13 +7,14 @@
 
         static buttonText = "Добавить процесс";
 
-        constructor(world, elements, mouse) {
-            super('PROCESS', world, elements, mouse, './svg/process.svg');
+        constructor(elements, render) {
+            super('PROCESS', elements, render, './svg/process.svg');
+            this.label = 'process';
             this.moveable = true;
             this.unpinable = false;
         }
 
-        async draw(point) {
+        async create(point) {
             await this.setVertices();
 
             this.matterElement = Bodies.fromVertices(point.x, point.y, this.vertices, {

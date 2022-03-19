@@ -5,8 +5,8 @@
     const Svg = Matter.Svg;
 
     class SvgMatterElement extends GS.SD.BaseMatterElement {
-        constructor(type, world, elements, mouse, path) {
-            super(type, world, elements, mouse);
+        constructor(type, elements, render, path) {
+            super(type, elements, render);
             this.path = path;
             this.vertices = [];
         }

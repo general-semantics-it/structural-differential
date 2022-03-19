@@ -8,6 +8,7 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="general-semantics" />
+    <orderEntry type="module" module-name="matter-js" />
+    <orderEntry type="module" module-name="dat.gui-master" />
   </component>
 </module>

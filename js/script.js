@@ -21,12 +21,15 @@ class SD {
         this.mouse = null;
         this.mouseConstraint = null;
         this.elements = [];
+        this.gui = new dat.gui.GUI();
+        this.showIds = false;
         this.elementsClasses = [
             GS.SD.Process,
             GS.SD.AbstractedProperty,
             GS.SD.Object,
             GS.SD.Conclusion,
         ]
+        this.inspector = null;
 
         this.init();
     }
@@ -40,9 +43,29 @@ class SD {
             engine: this.engine,
             options: {
                 width: 1000,
-                height: 1000
+                height: 1000,
             }
         });
+
+        this.setupGui();
+
+
+        Events.on(this.render, 'afterRender', (event) => {
+            if(this.showIds) {
+                let ctx = event.source.context;
+                this.elements.forEach((el, index) => {
+                    let body = el.matterBodyResolver();
+                    let width = Math.abs(body.bounds.max.x - body.bounds.min.x);
+                    let height = Math.abs(body.bounds.max.y - body.bounds.min.y);
+
+                    ctx.globalAlpha = 1;
+                    ctx.font = "12px sans-serif";
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText(el.label + " " + index,body.position.x - width / 2 ,body.position.y - height/ 2);
+                })
+            }
+
+        })
 
         let Runner = Matter.Runner;
         let runner = Runner.create();
@@ -50,45 +73,60 @@ class SD {
 
         this.setupMouse();
         this.setupMouseEvents();
-        this.setupControls();
+
 
         Composite.add(this.world, [
-            Bodies.rectangle(500, -100, 1000, 50, { isStatic: true }),
-            Bodies.rectangle(500, 700, 1000, 50, { isStatic: true }),
+            Bodies.rectangle(500, 0, 1000, 50, { isStatic: true }),
+            Bodies.rectangle(500, 1000, 1000, 50, { isStatic: true }),
             //Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(0, 300, 50, 1000, { isStatic: true })
+            Bodies.rectangle(0, 500, 50, 1000, { isStatic: true })
         ]);
 
         Render.lookAt(this.render, {
             min: { x: 0, y: 0 },
-            max: { x: 800, y: 600 }
+            max: { x: 1000, y: 1000 }
         });
 
         Render.run(this.render);
 
+        this.inspector = new GS.SD.Inspector(this);
+        this.inspector.create();
+
 
     }
 
-    setupControls() {
-        let _ = this;
 
-        _.elementsClasses.forEach(function(cls) {
-            let button = document.createElement('BUTTON');
-            let controls = document.querySelector('.controls');
+    setupGui() {
 
-            button.textContent = cls.buttonText;
-            controls.appendChild(button);
+        let obj = {
+            showIds: false,
+        };
 
-            button.addEventListener('click', async () => {
-                _.mode = 'PLACING';
-                _.temp = new cls(_.world, _.elements, _.mouse);
-                await _.temp.draw(_.mouse.position);
-                _.elements.push(_.temp);
-                console.log(_.temp.matterElement);
-                Composite.add(_.world, _.temp.matterElement);
-            });
+        this.gui.remember(obj);
+
+        let buttonsFolder = this.gui.addFolder('Figures');
+        this.elementsClasses.forEach((cls, i) => {
+            obj[cls.buttonText] = () => {
+                this.mode = 'PLACING';
+                this.temp = new cls(this.elements, this.render);
+                this.temp.create(this.mouse.position).then(() => {
+                    this.temp.addToWorld();
+                    this.elements.push(this.temp);
+                    this.inspector.update();
+                });
+            };
+            buttonsFolder.add(obj, cls.buttonText);
+        })
+
+        let settingsFolder = this.gui.addFolder('Settings');
+        let showIdsController = settingsFolder.add(obj, 'showIds')
+        showIdsController.onChange((value) => {
+            this.showIds = value;
         });
+
     }
+
+
 
     setupMouse() {
         // add mouse control

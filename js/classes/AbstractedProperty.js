@@ -8,14 +8,15 @@
 
         static buttonText = "Абстрагировать свойство";
 
-        constructor(world, elements, mouse) {
-            super('ABSTRACTED_PROPERTY', world, elements, mouse);
+        constructor(elements, render) {
+            super('ABSTRACTED_PROPERTY', elements, render);
+            this.label = 'abstracted property';
             this.group = -1;
             this.pinPointsAmount = 2;
             this.moveable = false;
         }
 
-        draw(point) {
+        async create(point) {
             let particleOptions = Common.extend({ inertia: Infinity, friction: 0.00001, collisionFilter: { group: this.group }, render: { visible: false } } , {});
             let constraintOptions = Common.extend({ stiffness: 0.06, render: { type: 'line', anchors: false } });
 

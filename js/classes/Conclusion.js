@@ -7,13 +7,14 @@
 
         static buttonText = "Добавить заключение";
 
-        constructor(world, elements, mouse) {
-            super('CONCLUSION', world, elements, mouse);
+        constructor(elements, render) {
+            super('CONCLUSION', elements, render);
+            this.label = 'conclusion';
             this.moveable = true;
-            this.unpinable = true;
+            //this.unpinable = true;
         }
 
-        draw(point) {
+        async create(point) {
 
             this.matterElement = Bodies.rectangle(point.x, point.y, 100, 150, {
                 collisionFilter: {

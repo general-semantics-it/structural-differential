@@ -4,10 +4,12 @@
     const Body = Matter.Body;
 
     class BaseMatterElement {
-        constructor(type, world, elements, mouse) {
+        constructor(type, elements, render) {
             this.type = type;
-            this.world = world;
-            this.mouse = mouse;
+            this.label = "Base element"
+            this.world = render.engine.world;
+            this.mouse = render.mouse;
+            this.canvas = render.canvas;
             this.matterElement = null;
             this.prevMousePosition = null;
             this.elements = elements;
@@ -18,6 +20,10 @@
             this.pinConstraint = null;
             this.unpinable = false;
             this.externalPinned = false;
+        }
+
+        async create() {
+            throw Error('You must declare [create function] for ' + this)
         }
 
         correctPosition(mouse) {
@@ -120,6 +126,19 @@
 
         containsPointResolver(point) {
             return Vertices.contains(this.matterBodyResolver().vertices, point);
+        }
+
+        addToWorld() {
+            Composite.add(this.world, this.matterElement);
+        }
+
+        removeFromWorld() {
+            let _ = this;
+            Composite.remove(this.world, this.matterElement);
+
+            this.pinConstraints.forEach(function(el) {
+                Composite.remove(_.world, el);
+            })
         }
     }
 
