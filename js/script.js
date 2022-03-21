@@ -21,7 +21,7 @@ class SD {
         this.mouse = null;
         this.mouseConstraint = null;
         this.elements = [];
-        this.gui = new dat.gui.GUI();
+        this.gui = null;
         this.showIds = false;
         this.elementsClasses = [
             GS.SD.Process,
@@ -39,16 +39,15 @@ class SD {
         this.world = this.engine.world;
 
         this.render = Render.create({
-            element: document.querySelector("#root"),
+            element: document.querySelector(".matter-demo"),
             engine: this.engine,
             options: {
-                width: 1000,
-                height: 1000,
+                width: 800,
+                height: 600,
             }
         });
 
         this.setupGui();
-
 
         Events.on(this.render, 'afterRender', (event) => {
             if(this.showIds) {
@@ -64,7 +63,6 @@ class SD {
                     ctx.fillText(el.label + " " + index,body.position.x - width / 2 ,body.position.y - height/ 2);
                 })
             }
-
         })
 
         let Runner = Matter.Runner;
@@ -74,12 +72,11 @@ class SD {
         this.setupMouse();
         this.setupMouseEvents();
 
-
         Composite.add(this.world, [
-            Bodies.rectangle(500, 0, 1000, 50, { isStatic: true }),
+/*            Bodies.rectangle(500, 0, 1000, 50, { isStatic: true }),
             Bodies.rectangle(500, 1000, 1000, 50, { isStatic: true }),
-            //Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
-            Bodies.rectangle(0, 500, 50, 1000, { isStatic: true })
+            Bodies.rectangle(800, 300, 50, 600, { isStatic: true }),
+            Bodies.rectangle(0, 500, 50, 1000, { isStatic: true })*/
         ]);
 
         Render.lookAt(this.render, {
@@ -91,20 +88,19 @@ class SD {
 
         this.inspector = new GS.SD.Inspector(this);
         this.inspector.create();
-
-
     }
 
-
     setupGui() {
+
+        this.gui = new dat.gui.GUI();
 
         let obj = {
             showIds: false,
         };
 
-        this.gui.remember(obj);
+        //this.gui.remember(obj);
 
-        let buttonsFolder = this.gui.addFolder('Figures');
+        let buttonsGui = this.gui.addFolder('Figures');
         this.elementsClasses.forEach((cls, i) => {
             obj[cls.buttonText] = () => {
                 this.mode = 'PLACING';
@@ -115,18 +111,20 @@ class SD {
                     this.inspector.update();
                 });
             };
-            buttonsFolder.add(obj, cls.buttonText);
+            buttonsGui.add(obj, cls.buttonText);
         })
 
-        let settingsFolder = this.gui.addFolder('Settings');
-        let showIdsController = settingsFolder.add(obj, 'showIds')
+        buttonsGui.open();
+
+        let settingsGui = this.gui.addFolder('Settings');
+        let showIdsController = settingsGui.add(obj, 'showIds')
+
+        settingsGui.open();
         showIdsController.onChange((value) => {
             this.showIds = value;
         });
 
     }
-
-
 
     setupMouse() {
         // add mouse control
@@ -198,7 +196,6 @@ class SD {
             }
         })
     }
-
 
 }
 

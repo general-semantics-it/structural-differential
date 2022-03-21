@@ -3,16 +3,29 @@
 
         constructor(sd) {
             this.sd = sd;
-            this.container = document.querySelector('.inspector');
+            this.$container = $('.ins-world-tree');
             this.ul = document.createElement('UL')
         }
 
         create() {
-            this.container.appendChild(this.ul);
             this.update();
+
         }
 
         update() {
+            this.$container.jstree({
+                'core' : {
+                    'data' : [
+                        'Simple root node',
+                        {
+                            'id' : 'node_2',
+                            'text' : 'Root node with options',
+                            'state' : { 'opened' : true, 'selected' : true },
+                            'children' : [ { 'text' : 'Child 1' }, 'Child 2']
+                        }
+                    ]
+                }
+            })
             this.ul.innerHTML = "";
             this.sd.elements.forEach((el, index) => {
 
@@ -28,6 +41,8 @@
 
         }
     }
+
+
 
     window.GS.SD.Inspector = Inspector;
 }())

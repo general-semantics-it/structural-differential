@@ -10,5 +10,8 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="matter-js" />
     <orderEntry type="module" module-name="dat.gui-master" />
+    <orderEntry type="module" module-name="matter-tools-master" />
+    <orderEntry type="module" module-name="jstree-master" />
+    <orderEntry type="module" module-name="keymaster-master" />
   </component>
 </module>
