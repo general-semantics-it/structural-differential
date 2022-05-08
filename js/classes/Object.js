@@ -11,7 +11,7 @@
             super('OBJECT', elements, render);
             this.label = 'object';
             this.moveable = true;
-            //this.unpinable = true;
+            this.unpinWhenAbstracted = false;
 
         }
 

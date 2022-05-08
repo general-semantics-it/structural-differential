@@ -11,7 +11,7 @@
             super('PROCESS', elements, render, './svg/process.svg');
             this.label = 'process';
             this.moveable = true;
-            this.unpinable = false;
+            this.unpinWhenAbstracted = false;
         }
 
         async create(point) {

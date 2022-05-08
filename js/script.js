@@ -155,8 +155,8 @@ class SD {
 
                     if(el.containsPointResolver(mouse.mousedownPosition) && el.moveable) {
                         _.temp = el;
-                        _.temp.beforeMove();
-                        _.mode = 'MOVING';
+                        _.temp.beforeDrag();
+                        _.mode = 'DRAGGING';
                         return;
                     }
                 }
@@ -189,8 +189,8 @@ class SD {
         })
 
         Events.on(this.mouseConstraint, 'mouseup', function({ mouse }) {
-            if(_.mode === 'MOVING') {
-                _.temp.afterMove();
+            if(_.mode === 'DRAGGING') {
+                _.temp.afterDrag();
                 _.temp = null;
                 _.mode = 'IDLE';
             }

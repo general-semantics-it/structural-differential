@@ -11,7 +11,6 @@
             super('CONCLUSION', elements, render);
             this.label = 'conclusion';
             this.moveable = true;
-            //this.unpinable = true;
         }
 
         async create(point) {

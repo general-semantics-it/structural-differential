@@ -13,12 +13,11 @@
             this.matterElement = null;
             this.prevMousePosition = null;
             this.elements = elements;
-            this.pinPointsAmount = 1;
-            this.pinPointIndex = 0;
+            this.maxPinPointsAmount = 1;
             this.moveable = false;
             this.pinConstraints = [];
             this.pinConstraint = null;
-            this.unpinable = false;
+            this.unpinWhenAbstracted = false;
             this.externalPinned = false;
         }
 
@@ -27,7 +26,6 @@
         }
 
         correctPosition(mouse) {
-
             if(!this.prevMousePosition) {
                 this.correctPositionResolver();
 
@@ -46,60 +44,111 @@
             return Body;
         }
 
-        pin() {
-
-            this.pinConstraint = Constraint.create({
+        createPin() {
+            return Constraint.create({
                 bodyA: this.matterBodyResolver(),
                 pointB: {
                     x: this.matterBodyResolver().position.x,
                     y: this.matterBodyResolver().position.y
                 }
             })
+        }
 
+        canPin() {
+            return true;
+        }
+
+        pin(pinConstraint, target) {
+            if(!this.canPin()) {
+                return;
+            }
+            this.beforePinned();
+            this.addPin(pinConstraint, target);
+            this.afterPinned();
+        }
+
+        pinToWorld(pinConstraint) {
+            this.pin(pinConstraint, this.world)
+        }
+
+        beforePinned() {
+
+        }
+
+        afterPinned() {
+            Body.setStatic(this.matterBodyResolver(), false)
+        }
+
+        unpin(pinConstraint) {
+            this.beforeUnpinned();
+            this.removePin(pinConstraint);
+            this.afterUnpinned();
+        }
+
+        unpinLast() {
+            this.unpin(this.lastPin());
+        }
+
+        beforeUnpinned() {
+
+        }
+
+        afterUnpinned() {
             Body.setStatic(this.matterBodyResolver(), false);
-            Composite.add(this.world, this.pinConstraint);
-
         }
 
-        unpin() {
-            Composite.remove(this.world, this.pinConstraints[this.pinPointIndex]);
+        isLastPin() {
+            return this.pinsAmount() === this.maxPinPointsAmount;
         }
 
-        beforeMove() {
+        lastPin() {
+            return this.pinConstraints[this.pinsAmount()-1]
+        }
+
+        pinsAmount() {
+            return this.pinConstraints.length;
+        }
+
+        addPin(pinConstraint, target) {
+            Composite.add(target, pinConstraint);
+            this.pinConstraints.push(pinConstraint);
+        }
+
+        removePin(pinConstraint) {
+            Composite.remove(this.world, pinConstraint);
+            this.pinConstraints.pop();
+        }
+
+        beforeDrag() {
             this.unPlace();
         }
 
-        afterMove() {
+        afterDrag() {
             this.place();
         }
 
-        afterPin() {}
-
-        afterUnpin() {}
+        canPlace() {
+            return true;
+        }
 
         place() {
-            if(!this.externalPinned) {
-                this.pin();
-                this.pinPointIndex++;
-                this.pinConstraints.push(this.pinConstraint);
-                this.afterPin();
+            if(!this.canPlace()) {
+                return;
             }
+            if(!this.externalPinned) {
+                const pinConstraint = this.resolvePinOnPlace();
+                this.pinToWorld(pinConstraint);
+            }
+        }
 
+        resolvePinOnPlace() {
+            return this.createPin();
         }
 
         unPlace() {
             if(!this.externalPinned) {
-                this.pinPointIndex--;
-                this.unpin();
-                Body.setStatic(this.matterBodyResolver(), false);
-
-                this.pinConstraints.pop();
-                this.afterUnpin();
+                this.unpinLast()
             }
-        }
-
-        isLastPin() {
-            return this.pinPointIndex >= this.pinPointsAmount;
         }
 
         move(mouse) {
@@ -113,8 +162,9 @@
             this.prevMousePosition = {
                 x: mouse.position.x,
                 y: mouse.position.y,
-
             };
+
+            this.onMove(mouse);
         }
 
         correctPositionResolver() {
@@ -137,8 +187,12 @@
             Composite.remove(this.world, this.matterElement);
 
             this.pinConstraints.forEach(function(el) {
-                Composite.remove(_.world, el);
+                _.unpin();
             })
+        }
+
+        onMove(mouse) {
+
         }
     }
 
