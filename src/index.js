@@ -1,14 +1,31 @@
-let Composite = Matter.Composite,
-    Bodies = Matter.Bodies,
-    Engine = Matter.Engine,
-    Render = Matter.Render,
-    Common = Matter.Common,
-    MouseConstraint = Matter.MouseConstraint,
-    Constraint = Matter.Constraint,
-    Mouse = Matter.Mouse,
-    Events = Matter.Events,
-    Vertices = Matter.Vertices,
-    Body = Matter.Body;
+import * as dat from 'dat.gui';
+import {
+    Composite,
+    Bodies,
+    Engine,
+    Render,
+    Runner,
+    Common,
+    MouseConstraint,
+    Constraint,
+    Mouse,
+    Events,
+    Vertices,
+    Body
+} from "matter-js"
+
+import {ObjectLevel} from "./classes/abstractionLevels/ObjectLevel";
+import {Conclusion} from "./classes/abstractionLevels/Conclusion";
+import {Process} from "./classes/abstractionLevels/Process";
+import {AbstractedProperty} from "./classes/AbstractedProperty";
+import {Inspector} from "./classes/Inspector";
+import "./css/reset.css";
+import "./css/demo.css";
+import "./css/gui.css";
+import "./css/inspector.css";
+
+var decomp = require('poly-decomp');
+require('pathseg');
 
 class SD {
 
@@ -24,10 +41,10 @@ class SD {
         this.gui = null;
         this.showIds = false;
         this.elementsClasses = [
-            GS.SD.Process,
-            GS.SD.AbstractedProperty,
-            GS.SD.Object,
-            GS.SD.Conclusion,
+            Process,
+            AbstractedProperty,
+            ObjectLevel,
+            Conclusion,
         ]
         this.inspector = null;
 
@@ -65,7 +82,6 @@ class SD {
             }
         })
 
-        let Runner = Matter.Runner;
         let runner = Runner.create();
         Runner.run(runner, this.engine);
 
@@ -86,7 +102,7 @@ class SD {
 
         Render.run(this.render);
 
-        this.inspector = new GS.SD.Inspector(this);
+        this.inspector = new Inspector(this);
         this.inspector.create();
     }
 
@@ -107,6 +123,7 @@ class SD {
                 this.temp = new cls(this.elements, this.render);
                 this.temp.create(this.mouse.position).then(() => {
                     this.temp.addToWorld();
+                    //Body.setStatic(this.temp.matterElement, true); // hack to
                     this.elements.push(this.temp);
                     this.inspector.update();
                 });
@@ -168,12 +185,13 @@ class SD {
                         let el = _.elements[i];
 
                         if(el.containsPointResolver(mouse.mousedownPosition) && el.moveable) {
-                            _.temp.place();
-
-                            if(_.temp.isLastPin()) {
+                            const placeProcessEnded = _.temp.place();
+                            _.temp.initiallyPlaced = true;
+                            if(placeProcessEnded) {
                                 _.temp = null;
                                 _.mode = 'IDLE';
                             }
+
                         }
                     }
 
