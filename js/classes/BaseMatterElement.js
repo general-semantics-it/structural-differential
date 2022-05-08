@@ -58,12 +58,12 @@
             return true;
         }
 
-        pin(pinConstraint, target) {
+        pin(pinConstraint, composite) {
             if(!this.canPin()) {
                 return;
             }
             this.beforePinned();
-            this.addPin(pinConstraint, target);
+            this.addPin(pinConstraint, composite);
             this.afterPinned();
         }
 
@@ -109,8 +109,8 @@
             return this.pinConstraints.length;
         }
 
-        addPin(pinConstraint, target) {
-            Composite.add(target, pinConstraint);
+        addPin(pinConstraint, composite) {
+            Composite.add(composite, pinConstraint);
             this.pinConstraints.push(pinConstraint);
         }
 
@@ -137,8 +137,13 @@
             }
             if(!this.externalPinned) {
                 const pinConstraint = this.resolvePinOnPlace();
-                this.pinToWorld(pinConstraint);
+                const target = this.resolveCompositeOnPlace();
+                this.pin(pinConstraint, target);
             }
+        }
+
+        resolveCompositeOnPlace() {
+            return this.world;
         }
 
         resolvePinOnPlace() {

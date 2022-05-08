@@ -32,12 +32,25 @@
             this.matterBodyResolver().isStatic = true;
         }
 
-        async update() {
-            this.removeFromWorld();
-            this.matterElement = this.create(this.mouse.position);
-            this.addToWorld();
-            this.pin();
-        }
+        /*        async update() {
+                    const constraints = Composite.allConstraints(this.matterElement);
+                    const bodies = Composite.allBodies(this.matterElement);
+                    console.log('constraints', constraints);
+                    console.log('constraints', bodies);
+                    for(let i = 0; i < constraints.length; i++) {
+                        const c = constraints[i];
+                        const b = bodies[i];
+                        Composite.removeConstraint(this.matterElement, c);
+                        Composite.removeBody(this.matterElement, b);
+                    }
+                    this.matterElement = this.createString({x: 200, y: 500})
+                    this.connectTogether(this.matterElement);
+                    this.addToWorld();
+                    //this.removeFromWorld();
+                    //this.create(this.mouse.position);
+                    //this.addToWorld();
+                    //this.pin();
+                }*/
 
         createString(point) {
             const stack = this.createStackOfCircles(point);
@@ -47,7 +60,7 @@
 
         createStackOfCircles(point) {
             return Composites.stack(point.x, point.y, 1, this.segments, 5, 5, function(x, y, column, row) {
-                this.particleOptions.render.visible = (row === 0 || row === (this.segments - 1));
+                this.particleOptions.render.visible = true;
                 return Bodies.circle(x, y, 8, this.particleOptions);
             }.bind(this));
         }
@@ -75,6 +88,10 @@
                     y: _.mouse.position.y - el.matterBodyResolver().position.y
                 }
             })
+        }
+
+        resolveCompositeOnPlace() {
+            return this.matterElement
         }
 
         canPlace() {
@@ -124,12 +141,12 @@
             }
         }
 
-        /*      onMove(mouse) {
-          setTimeout(() => {
-              this.segments+1;
-              this.update();
-          },3000)
-      }*/
+        /*              onMove(mouse) {
+                  setTimeout(() => {
+                      this.segments+1;
+                      this.update();
+                  },3000)
+              }*/
 
     }
 
