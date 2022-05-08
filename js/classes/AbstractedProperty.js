@@ -124,6 +124,13 @@
             }
         }
 
+        /*      onMove(mouse) {
+          setTimeout(() => {
+              this.segments+1;
+              this.update();
+          },3000)
+      }*/
+
     }
 
     window.GS.SD.AbstractedProperty = AbstractedProperty;
